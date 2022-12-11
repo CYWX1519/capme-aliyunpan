@@ -83,6 +83,7 @@ class MyAligo:
                         self.cursor.execute(sql_script)
             else:
                 logging.info("this is a folder, name is: " + file)
+                # TODO
 
     def upload_file(self, folder_path, local_file_path):
         web_res = self.client.get_folder_by_path(folder_path)
@@ -93,7 +94,7 @@ class MyAligo:
                                 parent_file_id=web_res.file_id,
                                 check_name_mode="overwrite")
         if upload_respon is None:
-            logging.WARNING("upload file failed!")
+            logging.warning("upload file failed!")
             return False
         return True
 
@@ -122,11 +123,10 @@ class MyAligo:
 
 def aligo_operator(file_list):
     for file in file_list:
-
-    ali = Aligo()
-    user = ali.get_user()
-    ll = ali.get_file_list()
-    print(ll)
+        ali = Aligo()
+        user = ali.get_user()
+        ll = ali.get_file_list()
+        print(ll)
 
 
 if __name__ == "__main__":
