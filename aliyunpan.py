@@ -126,7 +126,7 @@ class MyAligo:
         while (True):
             try:
                 if self.operator_database():
-                    self.update_file()  # TODO ADD your root path
+                    self.update_file(self.path, self.web_root_path)
             except:
                 exit()
             self.cursor.close()
@@ -140,3 +140,6 @@ if __name__ == "__main__":
                         filename='./running.log',
                         format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
     logging.info("starting this program...")
+    myAligoOper = MyAligo("/home/cywx/cloudreve")
+    myAligoOper.run()
+
