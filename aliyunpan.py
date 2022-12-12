@@ -1,5 +1,5 @@
 from aligo import *
-from time import sleep,time
+from time import sleep, time
 import os
 import logging
 import pymysql
@@ -35,26 +35,30 @@ class MyAligo:
                 for table in tables:
                     is_existed = False
                     for index in len(table):
-                        if  table[index] is "update_records":
+                        if table[index] is "update_records":
                             is_existed = True
                             break
                     if is_existed:
                         is_found = True
                         break
                 if not is_found:
-                    logging.warning("can not found the table, creating new table...")
+                    logging.warning(
+                        "can not found the table, creating new table...")
                     self.creata_table()
                 else:
                     logging.info("table found!")
             else:
-                logging.warning("table do not existed, create new table...");
+                logging.warning("table do not existed, create new table...")
                 self.creata_table()
+            return True
         except:
-            pass
+            self.mysql.close()
+            return False
 
     def creata_table(self):
         try:
-            self.cursor.execute("create table update_records(id int primary key not null auto_increment, name varchar(255) not null, update_time varchar(255) not null, modified_time varchar(255) not null);")
+            self.cursor.execute(
+                "create table update_records(id int primary key not null auto_increment, name varchar(255) not null, update_time varchar(255) not null, modified_time varchar(255) not null);")
             logging.info("table created!")
         except:
             logging.error("table created falied! Exiting...")
@@ -68,31 +72,34 @@ class MyAligo:
             if os.path.isfile(file_path):
                 logging.info("the file will upload name is: " + file)
                 sql_script = "select * from update_records where name='" + file + "';"
-                logging.info(sql_script)
+                logging.debug(sql_script)
                 modify_time = os.path.getmtime(file_path)
                 if self.cursor.execute(sql_script) is not 0:  # record exist
                     res = self.cursor.fetchone()
                     if res[3] is not modify_time:
-                        if self.upload_file(web_file_path, file_path):
-                            sql_script = "update update_records set update_time=" + time() + ",modified_time=" + modify_time + " where name='" + file + "';"
-                            logging.info(sql_script)
+                        if self.upload_file(file_path, web_file_path):
+                            sql_script = "update update_records set update_time=" + \
+                                time() + ",modified_time=" + modify_time + " where name='" + file + "';"
+                            logging.debug(sql_script)
                             self.cursor.execute(sql_script)
-                else: # record not exist
-                    if self.update_file(web_file_path, file_path):
-                        sql_script = "insert into update_records(name,update_time,modified_time) values('" + file + "','" + time() + "','" + modify_time + "');"
+                else:  # record not exist
+                    if self.upload_file(file_path, web_file_path):
+                        sql_script = "insert into update_records(name,update_time,modified_time) values('" + \
+                            file + "','" + time() + "','" + modify_time + "');"
+                        logging.debug(sql_script)
                         self.cursor.execute(sql_script)
             else:
                 logging.info("this is a folder, name is: " + file)
-                # TODO
+                self.update_file(file_path, web_file_path)
 
-    def upload_file(self, folder_path, local_file_path):
+    def upload_file(self, local_file_path, folder_path):
         web_res = self.client.get_folder_by_path(folder_path)
         if web_res is None:
             self.client.create_folder(folder_path)
         web_res = self.client.get_folder_by_path(folder_path)
         upload_respon = self.client.upload_file(file_path=local_file_path,
-                                parent_file_id=web_res.file_id,
-                                check_name_mode="overwrite")
+                                                parent_file_id=web_res.file_id,
+                                                check_name_mode="overwrite")
         if upload_respon is None:
             logging.warning("upload file failed!")
             return False
@@ -112,21 +119,19 @@ class MyAligo:
             logging.info("\"cloudreve\" folder creating succeed!")
 
     def waitting_next_weakup(self):
-        logging.info("sleep until next check update...")
+        logging.info("sleep until next update...")
         sleep(3600 * 24)
 
     def run(self):
         while (True):
-            self.update_file()
+            try:
+                if self.operator_database():
+                    self.update_file()  # TODO ADD your root path
+            except:
+                exit()
+            self.cursor.close()
+            self.mysql.close()
             self.waitting_next_weakup()
-
-
-def aligo_operator(file_list):
-    for file in file_list:
-        ali = Aligo()
-        user = ali.get_user()
-        ll = ali.get_file_list()
-        print(ll)
 
 
 if __name__ == "__main__":
