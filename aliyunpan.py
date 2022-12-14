@@ -79,13 +79,13 @@ class MyAligo:
                     if res[3] is not modify_time:
                         if self.upload_file(file_path, web_file_path):
                             sql_script = "update update_records set update_time=" + \
-                                time() + ",modified_time=" + modify_time + " where name='" + file + "';"
+                                str(time()) + ",modified_time=" + str(modify_time) + " where name='" + file + "';"
                             logging.debug(sql_script)
                             self.cursor.execute(sql_script)
                 else:  # record not exist
                     if self.upload_file(file_path, web_file_path):
                         sql_script = "insert into update_records(name,update_time,modified_time) values('" + \
-                            file + "','" + time() + "','" + modify_time + "');"
+                            file + "','" + str(time()) + "','" + str(modify_time) + "');"
                         logging.debug(sql_script)
                         self.cursor.execute(sql_script)
             else:
@@ -140,6 +140,6 @@ if __name__ == "__main__":
                         filename='./running.log',
                         format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
     logging.info("starting this program...")
-    myAligoOper = MyAligo("/home/cywx/cloudreve")
+    myAligoOper = MyAligo("/home/cywx/cloudreve") # TODO change it 
     myAligoOper.run()
 
